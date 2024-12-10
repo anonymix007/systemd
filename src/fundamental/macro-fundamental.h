@@ -538,14 +538,22 @@ static inline uint64_t ALIGN_OFFSET_U64(uint64_t l, uint64_t ali) {
         }
 #endif
 
+#if __GNUC__ > 0
 /* Declares an ELF read-only string section that does not occupy memory at runtime. */
-#define DECLARE_NOALLOC_SECTION(name, text)   \
+#define DECLARE_NOALLOC_SECTION_SUFFIX(name, text, ...)   \
         asm(".pushsection " name ",\"S\"\n\t" \
             ".ascii " STRINGIFY(text) "\n\t"  \
             ".popsection\n")
+#else
+#define DECLARE_NOALLOC_SECTION_SUFFIX(name, text, suffix)   \
+    __attribute__((section(name))) __attribute__((__used__)) static const char __static_section_content_##suffix[] = text;
+#endif
+
+#define DECLARE_NOALLOC_SECTION(name, text) \
+    DECLARE_NOALLOC_SECTION_SUFFIX(name, text, unknown)
 
 #ifdef SBAT_DISTRO
-        #define DECLARE_SBAT(text) DECLARE_NOALLOC_SECTION(".sbat", text)
+        #define DECLARE_SBAT(text) DECLARE_NOALLOC_SECTION_SUFFIX(".sbat", text, sbat)
 #else
         #define DECLARE_SBAT(text)
 #endif
