@@ -492,6 +492,7 @@ if conf.get('ENABLE_UKIFY') == 1 and efi_stub != ''
                         'build',
                         '--os-release', 'v7',
                         '--hwids', meson.current_source_dir()/'hwids',
+                        '--efifw', meson.current_source_dir()/'fw',
                         '--stub' , '@INPUT@',
                         '--linux', efi_stub,
                         '--sbat', '42',

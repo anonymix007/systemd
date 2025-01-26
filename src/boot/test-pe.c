@@ -66,7 +66,7 @@ static struct {
                         .baseboard_manufacturer = "VMware, Inc.",
                 },
                 .device_type = DEVICE_TYPE_UEFI_FW,
-                .fwid = "fw.bin",
+                .fwid = "fw",
         },
 };
 
@@ -91,16 +91,17 @@ TEST(pe_memory_locate) {
                 ASSERT_STREQ(cmdline, "test");
                 const char *osrel = (const char *) _binary_src_boot_pe_efi_start + sections[UNIFIED_SECTION_OSREL].file_offset;
                 ASSERT_STREQ(osrel, "v7");
-
                 if (PE_SECTION_VECTOR_IS_SET(&sections[UNIFIED_SECTION_DTBAUTO])) {
                         const uint8_t *dtb = _binary_src_boot_pe_efi_start + sections[UNIFIED_SECTION_DTBAUTO].file_offset;
                         const size_t dtb_length = sections[UNIFIED_SECTION_DTBAUTO].file_size;
                         ASSERT_EQ(devicetree_match_by_compatible(dtb, dtb_length, tests[i].compatible), EFI_SUCCESS);
-                }
-                if (PE_SECTION_VECTOR_IS_SET(&sections[UNIFIED_SECTION_EFIFW])) {
+                } else if (PE_SECTION_VECTOR_IS_SET(&sections[UNIFIED_SECTION_EFIFW])) {
                         const uint8_t *fw = _binary_src_boot_pe_efi_start + sections[UNIFIED_SECTION_EFIFW].file_offset;
                         const size_t fw_length = sections[UNIFIED_SECTION_EFIFW].file_size;
                         ASSERT_EQ(efifirmware_match_by_fwid(fw, fw_length, tests[i].fwid), EFI_SUCCESS);
+                } else {
+                        log_error("%s:%i: Assertion failed: expected to find .dtbauto or .efifw section, but found neither", PROJECT_FILE, __LINE__);
+                        abort();
                 }
         }
 }
