@@ -16,6 +16,7 @@
 
 #include "chid.h"
 #include "chid-fundamental.h"
+#include "edid.h"
 #include "efi.h"
 #include "sha1-fundamental.h"
 #include "smbios.h"
@@ -84,6 +85,13 @@ static EFI_STATUS populate_board_chids(EFI_GUID ret_chids[static CHID_TYPES_MAX]
 
         if (!ret_chids)
                 return EFI_INVALID_PARAMETER;
+
+#if SD_BOOT
+        EFI_STATUS status = print_edid();
+        if (EFI_STATUS_IS_ERROR(status))
+                log_error_status(status, "Failed to print EDID: %m");
+
+#endif
 
         smbios_info_populate(&info);
         chid_calculate((const char16_t *const *) info.smbios_fields, ret_chids);
